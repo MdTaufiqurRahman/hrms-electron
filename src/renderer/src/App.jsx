@@ -7,10 +7,10 @@ const App = () => {
   return (
     <Router>
       <nav className="fixed top-0 left-0 right-0 flex justify-center space-x-4 bg-gray-800 text-white py-4 shadow-lg z-10">
-        <Link to="/" className="px-3 py-2 rounded hover:bg-gray-700">
+        <Link to="/" className="px-3 py-2 rounded bg-gray-900 hover:bg-gray-700">
           Home
         </Link>
-        <Link to="/about" className="px-3 py-2 rounded hover:bg-gray-700">
+        <Link to="/about" className="px-3 py-2 rounded hover:bg-gray-700 bg-gray-900">
           About
         </Link>
       </nav>
