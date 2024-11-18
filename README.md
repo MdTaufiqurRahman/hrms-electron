@@ -1,4 +1,4 @@
-# calculator-react
+# HRMS-react
 
 An Electron application with React
 
@@ -32,4 +32,5 @@ $ npm run build:mac
 # For Linux
 $ npm run build:linux
 ```
+
 # hrms-electron
