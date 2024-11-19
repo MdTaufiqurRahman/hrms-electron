@@ -1,20 +1,24 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron';
+import { electronAPI } from '@electron-toolkit/preload';
 
-// Custom APIs for renderer
-const api = {}
+// Define the custom API
+const api = {
+  sendFingerprintData: (data) => ipcRenderer.send('fingerprint-data', data),
+  receiveWebSocketData: (callback) => ipcRenderer.on('websocket-data', (event, data) => callback(data)),
+};
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
+// Use `contextBridge` to expose APIs if `contextIsolation` is enabled
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('electron', electronAPI);
+    console.log('Preload script executed');
+    contextBridge.exposeInMainWorld('api', api);
+    console.log('API exposed:..........................', api);
   } catch (error) {
-    console.error(error)
+    console.error('Failed to expose APIs:', error);
   }
 } else {
-  window.electron = electronAPI
-  window.api = api
+  // Fallback for non-isolated contexts
+  window.electron = electronAPI;
+  window.api = api;
 }

@@ -1,9 +1,22 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { HashRouter as Router, Route, Routes, Link } from "react-router-dom";
 import Home from "./components/Home";
 import About from "./components/About";
 
 const App = () => {
+  const [webSocketData, setWebSocketData] = useState(null);
+
+  useEffect(() => {
+    if (window.api && window.api?.receiveWebSocketData) {
+      window.api.receiveWebSocketData((data) => {
+        console.log('WebSocket Data Received:', data);
+        setWebSocketData(data);
+      });
+    } else {
+      console.error('API is not available or receiveWebSocketData is undefined');
+    }
+  }, []);
+
   return (
     <Router>
       <nav className="fixed top-0 left-0 right-0 flex justify-center space-x-4 bg-gray-800 text-white py-4 shadow-lg z-10">
@@ -16,7 +29,7 @@ const App = () => {
       </nav>
       <div className="pt-16">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home webSocketData={webSocketData} />} />
           <Route path="/about" element={<About />} />
         </Routes>
       </div>
