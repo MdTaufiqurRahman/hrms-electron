@@ -1,72 +1,109 @@
-import { app, shell, BrowserWindow } from "electron";
-import { join } from "path";
-import { electronApp, optimizer, is } from "@electron-toolkit/utils";
-import icon from "../../resources/icon.png?asset";
+import { app, shell, BrowserWindow, ipcMain } from 'electron';
+import { join } from 'path';
+import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import icon from '../../resources/icon.png?asset';
+import { WebSocketServer } from 'ws';
+
+let mainWindow;
+let javaWebSocketConnection = null;
 
 function createWindow() {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 700,
-    title: "Electron Vite",
+  mainWindow = new BrowserWindow({
+    width: 1080,
+    height: 1920,
+    title: 'Electron Vite',
     fullscreen: false,
     autoHideMenuBar: true,
-    ...(process.platform === "linux" ? { icon } : {}),
+    ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
-      preload: join(__dirname, "../preload/index.js"),
+      preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
+      // Ensure contextIsolation is enabled for security
+      contextIsolation: true,
     },
   });
 
-  mainWindow.on("ready-to-show", () => {
+  mainWindow.on('ready-to-show', () => {
     mainWindow.show();
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
-    return { action: "deny" };
+    return { action: 'deny' };
   });
 
-  // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-    mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
-    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
+
+  // Start the WebSocket server
+  startWebSocketServer();
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId("com.electron");
+function startWebSocketServer() {
+  const wss = new WebSocketServer({ port: 9091, host: '127.0.0.1' });
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
-  app.on("browser-window-created", (_, window) => {
+  wss.on('connection', function connection(ws) {
+    console.log('Java client connected');
+    javaWebSocketConnection = ws; // Store the connection for later use
+
+    ws.on('message', function incoming(message) {
+      console.log('Received from Java client:', message);
+
+      // Send a response back to the Java backend
+      ws.send('Message received: ' + 'Hello from Electron!');
+
+      // Communicate with the renderer process
+      mainWindow.webContents.send('message-from-java', message);
+    });
+
+    ws.on('close', function () {
+      console.log('Java client disconnected');
+      javaWebSocketConnection = null;
+    });
+
+    ws.on('error', function (error) {
+      console.error('WebSocket error:', error);
+    });
+  });
+
+  wss.on('listening', function () {
+    console.log('WebSocket server started on ws://localhost:8080');
+  });
+}
+
+// Handle messages from the renderer process
+ipcMain.on('message-to-java', (event, message) => {
+  console.log('Received message from renderer:', message);
+  // Forward the message to the Java backend via WebSocket
+  if (javaWebSocketConnection && javaWebSocketConnection.readyState === javaWebSocketConnection.OPEN) {
+    javaWebSocketConnection.send(message);
+  } else {
+    console.error('No active WebSocket connection to Java backend.');
+  }
+});
+
+// Electron app initialization
+app.whenReady().then(() => {
+  electronApp.setAppUserModelId('com.electron');
+
+  app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);
   });
 
   createWindow();
 
-  app.on("activate", function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
+  app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
     app.quit();
   }
 });
-
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
