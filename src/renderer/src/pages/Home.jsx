@@ -5,6 +5,7 @@ import { useAxiosRequest } from "../hooks/useAxiosRequest";
 
 const Home = () => {
   const [show, setShow] = useState(false);
+
   const [messageFromJava, setMessageFromJava] = useState(
     "Waiting for message...",
   );
@@ -36,7 +37,7 @@ const Home = () => {
   }, []);
 
   // Function to make the API call
-  const makeApiCall = async (data) => {
+  const makeApiCall = (data) => {
     console.log(data);
     dummyApi.apiAction({
       url: "https://backend.testsprint360.com/subscription/plan/public/all",
@@ -65,7 +66,7 @@ const Home = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-blue-100 text-gray-800">
-      <Link to="/">Go Back</Link>
+      <Link to="/profile">Go Profile</Link>
       <h1 className="text-4xl font-bold mb-4">Home Page</h1>
       <div className="text-lg">
         Message from Java backend:
