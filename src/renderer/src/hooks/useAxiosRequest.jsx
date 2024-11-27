@@ -31,6 +31,8 @@ export const useAxiosRequest = (initData) => {
     isToast,
     successMessage,
     errorMessage,
+    successHtml,
+    errorHtml,
   }) => {
     const requestUrl = url;
 
@@ -44,9 +46,12 @@ export const useAxiosRequest = (initData) => {
     });
 
     // Initialize default headers
-    let defaultHeaders = {
-      Authorization: `Bearer ${token}`,
-    };
+    let defaultHeaders = {};
+
+    // Add Authorization header if token is available
+    if (token) {
+      defaultHeaders["Authorization"] = `Bearer ${token}`;
+    }
 
     // Set 'Content-Type' based on the payload type
     if (payload instanceof FormData) {
@@ -76,8 +81,11 @@ export const useAxiosRequest = (initData) => {
         if (isToast) {
           showAlert({
             type: "success",
-            title: "Success",
-            text: successMessage || res?.data?.message || "Submitted Successfully",
+            html:
+              successHtml ||
+              `<p>${
+                successMessage || res?.data?.message || "Submitted Successfully"
+              }</p>`,
           });
         }
       })
@@ -93,12 +101,14 @@ export const useAxiosRequest = (initData) => {
         if (isToast) {
           showAlert({
             type: "error",
-            title: "Error",
-            text:
-              errorMessage ||
-              error?.response?.data?.message ||
-              error?.response?.data?.Message ||
-              "Failed, try again",
+            html:
+              errorHtml ||
+              `<p>${
+                errorMessage ||
+                error?.response?.data?.message ||
+                error?.response?.data?.Message ||
+                "Failed, try again"
+              }</p>`,
           });
         }
       });
@@ -109,18 +119,15 @@ export const useAxiosRequest = (initData) => {
   return { apiAction, resData, isLoading, error, success, resetData };
 };
 
+// Api call using the custom hook
 
-// ======== Example Usage =============
-// const loginApi = useAxiosRequest({});
-// loginApi.apiAction({
-//   url: 'www.login.com',
-//   method: 'POST',
-//   payload: {
-//     password: '1234',
-//     userId: 'demo@gmail.com',
-//   },
+// const  nameAnyAction  = useAxiosRequest({});  // Initialize the custom hook
+// nameAnyAction.apiAction({
+//   method: "get",
+//   url: "https://backend.testsprint360.com/subscription/plan/public/all",
 //   isToast: true,
+//   successMessage: "API call successful", // Optional
+//   errorMessage: "API call failed", // Optional
 //   cb: (data) => {
-//     data.email = 'Taufiqur Rahman';
+//     console.log(data);
 //   },
-// });

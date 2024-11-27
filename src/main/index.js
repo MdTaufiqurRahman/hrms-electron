@@ -72,7 +72,7 @@ function startWebSocketServer() {
   });
 
   wss.on('listening', function () {
-    console.log('WebSocket server started on ws://localhost:8080');
+    console.log('WebSocket server started on ws://localhost:9091');
   });
 }
 
