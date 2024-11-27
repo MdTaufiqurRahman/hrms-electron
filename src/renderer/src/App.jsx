@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { HashRouter as Router, Route, Routes, Link } from "react-router-dom";
-import Home from './components/Home';
-import About from "./components/About";
+import Home from './pages/Home';
+import About from "./pages/About";
+import { useAxiosRequest } from './hooks/useAxiosRequest';
 
 function App() {
   const [messageFromJava, setMessageFromJava] = useState('Waiting for message...');
   const listenerAdded = useRef(false);
+
+  const loginApi = useAxiosRequest({});
 
   useEffect(() => {
     if (!listenerAdded.current && window.api && window.api.onMessageFromJava) {
@@ -30,23 +33,35 @@ function App() {
   // Function to make the API call
   const makeApiCall = async (data) => {
     console.log(data);
-    try {
-      const response = await fetch('https://backend.testsprint360.com/subscription/plan/public/all', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+    // try {
+    //   const response = await fetch('https://backend.testsprint360.com/subscription/plan/public/all', {
+    //     method: 'GET',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //   });
 
-      if (!response.ok) {
-        throw new Error(`API call failed with status ${response.status}`);
-      }
+    //   if (!response.ok) {
+    //     throw new Error(`API call failed with status ${response.status}`);
+    //   }
 
-      const result = await response.json();
-      console.log('API call result:', result);
-    } catch (error) {
-      console.error('Error making API call:', error);
-    }
+    //   const result = await response.json();
+    //   console.log('API call result:', result);
+    // } catch (error) {
+    //   console.error('Error making API call:', error);
+    // }
+
+
+    loginApi.apiAction({
+      url: 'https://backend.testsprint360.com/subscription/plan/public/all',
+      method: 'GET',
+      isToast: true,
+      successMessage: 'API call successful',
+      cb: (data) => {
+        console.log(data);
+      },
+    });
+
   };
 
   const sendMessageToJava = () => {

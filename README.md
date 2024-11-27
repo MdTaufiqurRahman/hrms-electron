@@ -1,6 +1,6 @@
-# HRMS-react
+# kiosk-hrm-erp-frontend
 
-An Electron application with React
+An Electron application
 
 ## Recommended IDE Setup
 
@@ -33,4 +33,4 @@ $ npm run build:mac
 $ npm run build:linux
 ```
 
-# hrms-electron
+# kiosk-hrm-erp-frontend
